@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+const math = require('mathjs');
 
 function Button(props) {
   return (
@@ -12,8 +13,21 @@ function Button(props) {
 function Display(props) {
   return (
     <div>
-      {props.value}
+      <p>{props.values}</p>
+      {props.input}
     </div>
+  )
+}
+
+function Values(props) {
+  return (
+    <ul>
+      {
+        props.values.map((item, i) => {
+          return <li key={i}>{item}</li>
+        })
+      }
+    </ul>
   )
 }
 
@@ -86,6 +100,8 @@ class Calculator extends React.Component {
   }
 
   handleButtonPress(e) {
+    console.log(e)
+
     if (e === 'c') {
       this.setState({
         'input': '',
@@ -101,6 +117,31 @@ class Calculator extends React.Component {
       this.setState({
         'input': this.state.input + e
       })
+    } else if (['/', '*', '+', '-', '(', ')'].includes(`${e}`)) {
+      const values = this.state.values
+      values.push(this.state.input)
+      values.push(e)
+      this.setState({
+        'input': '',
+        'values': values
+      })
+    } else if (e === '=') {
+      try {
+        let equation = this.state.values.join(' ')
+        equation += this.state.input.toString()
+        const answer = math.evaluate(equation)
+
+        this.setState ({
+          'input': answer.toString(),
+          'values': []
+        })
+      } catch(err) {
+        console.log(err)
+        this.setState ({
+          'input': 'Error',
+          'values': []
+        })
+      }
     } else {
       console.log(e)
     }
@@ -116,8 +157,11 @@ class Calculator extends React.Component {
   render() {
     return (
       <div className='calculator'>
+        <Values
+          values={this.state.values}
+        />
         <Display 
-          value={this.state.input}
+          input={this.state.input}
         />
         <Keyboard 
           onClick={i => this.handleButtonPress(i)}
